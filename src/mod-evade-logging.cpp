@@ -1,7 +1,7 @@
 #include "mod-evade-logging.h"
 
-class evadeLogs : public UnitScript {
-
+class evadeLogs : public UnitScript
+{
 public:
     evadeLogs() : UnitScript("evadeLogs") {}
 
@@ -26,12 +26,16 @@ public:
         else
             unitGUID = 0;
 
-        std::string unitInfo = std::to_string(unitGUID) + " " + std::to_string(unit->GetGUID().GetCounter()) + " " + unit->GetName();
+        std::string unitName = unit->GetName();
+        CharacterDatabase.EscapeString(unitName);
+        std::string unitInfo = std::to_string(unitGUID) + " " + std::to_string(unit->GetGUID().GetCounter()) + " " + unitName;
 
         Unit* attacker = unit->GetVictim();
         if (!attacker)
         {
-            CharacterDatabase.Execute("INSERT INTO evade_logs (Map, VictimX, VictimY, VictimZ, VictimO, VictimType, VictimInfo, AttackerX, AttackerY, AttackerZ, AttackerO, AttackerType, AttackerInfo, EvadeReason) VALUES ({}, {}, {}, {}, {}, '{}', '{}', NULL, NULL, NULL, NULL, NULL, NULL, '{}')", map, unitX, unitY, unitZ, unitOrientation, unitType, CharacterDatabase.EscapeString(unitInfo), evadeReason);
+            CharacterDatabase.Execute(
+                "INSERT INTO evade_logs (Map, VictimX, VictimY, VictimZ, VictimO, VictimType, VictimInfo, AttackerX, AttackerY, AttackerZ, AttackerO, AttackerType, AttackerInfo, EvadeReason) VALUES ({}, {}, {}, {}, {}, '{}', '{}', NULL, NULL, NULL, NULL, NULL, NULL, '{}')",
+                map, unitX, unitY, unitZ, unitOrientation, unitType, unitInfo, evadeReason);
             return;
         }
 
@@ -41,14 +45,19 @@ public:
         float attackerOrientation = attacker->GetOrientation();
         std::string attackerType = GetUnitTypeText(attacker->GetTypeId());
         ObjectGuid::LowType attackerGUID;
-        if (unit->IsCreature())
+        if (attacker->IsCreature())
             attackerGUID = attacker->ToCreature()->GetSpawnId();
         else
             attackerGUID = 0;
 
-        std::string attackerInfo = std::to_string(attackerGUID) + " " + std::to_string(attacker->GetGUID().GetCounter()) + " " + attacker->GetName();
+        std::string attackerName = attacker->GetName();
+        CharacterDatabase.EscapeString(attackerName);
+        std::string attackerInfo = std::to_string(attackerGUID) + " " + std::to_string(attacker->GetGUID().GetCounter()) + " " + attackerName;
 
-        CharacterDatabase.Execute("INSERT INTO evade_logs (Map, VictimX, VictimY, VictimZ, VictimO, VictimType, VictimInfo, AttackerX, AttackerY, AttackerZ, AttackerO, AttackerType, AttackerInfo, EvadeReason) VALUES ({}, {}, {}, {}, {}, '{}', '{}', {}, {}, {}, {}, '{}', '{}', '{}')", map, unitX, unitY, unitZ, unitOrientation, unitType, CharacterDatabase.EscapeString(unitInfo), attackerX, attackerY, attackerZ, attackerOrientation, attackerType, CharacterDatabase.EscapeString(attackerInfo), evadeReason);
+        CharacterDatabase.Execute(
+            "INSERT INTO evade_logs (Map, VictimX, VictimY, VictimZ, VictimO, VictimType, VictimInfo, AttackerX, AttackerY, AttackerZ, AttackerO, AttackerType, AttackerInfo, EvadeReason) VALUES ({}, {}, {}, {}, {}, '{}', '{}', {}, {}, {}, {}, '{}', '{}', '{}')",
+            map, unitX, unitY, unitZ, unitOrientation, unitType, unitInfo,
+            attackerX, attackerY, attackerZ, attackerOrientation, attackerType, attackerInfo, evadeReason);
         return;
     }
 };
